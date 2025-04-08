@@ -1,0 +1,228 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>MNIST模型改進對比</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+            background-color: #f5f5f5;
+        }
+        .container {
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+        }
+        .code-section {
+            background-color: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        .code-block {
+            background-color: #f8f9fa;
+            padding: 15px;
+            border-radius: 4px;
+            font-family: monospace;
+            white-space: pre;
+            overflow-x: auto;
+        }
+        .improvement {
+            background-color: #e3f2fd;
+            padding: 5px;
+            border-radius: 4px;
+        }
+        .tabs {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+        .tab {
+            padding: 10px 20px;
+            background-color: #e0e0e0;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+        .tab.active {
+            background-color: #2196f3;
+            color: white;
+        }
+        .content {
+            display: none;
+        }
+        .content.active {
+            display: block;
+        }
+        .comparison-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+        }
+        .comparison-table th, .comparison-table td {
+            border: 1px solid #ddd;
+            padding: 8px;
+            text-align: left;
+        }
+        .comparison-table th {
+            background-color: #f2f2f2;
+        }
+        .highlight {
+            background-color: #fff3cd;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>MNIST模型改進對比</h1>
+        
+        <div class="tabs">
+            <div class="tab active" onclick="showSection('overview')">總覽</div>
+            <div class="tab" onclick="showSection('architecture')">模型架構</div>
+            <div class="tab" onclick="showSection('optimizer')">優化器</div>
+            <div class="tab" onclick="showSection('training')">訓練參數</div>
+        </div>
+
+        <div id="overview" class="content active">
+            <h2>主要改進總覽</h2>
+            <table class="comparison-table">
+                <tr>
+                    <th>改進項目</th>
+                    <th>原始版本</th>
+                    <th>改進版本</th>
+                    <th>改進效果</th>
+                </tr>
+                <tr>
+                    <td>模型架構</td>
+                    <td>簡單全連接網絡</td>
+                    <td>深度CNN架構</td>
+                    <td>更好的特徵提取能力</td>
+                </tr>
+                <tr>
+                    <td>優化器</td>
+                    <td>RMSprop (lr=1e-2)</td>
+                    <td>Adam (lr=0.001)</td>
+                    <td>更穩定的訓練過程</td>
+                </tr>
+                <tr>
+                    <td>訓練輪數</td>
+                    <td>5 epochs</td>
+                    <td>20 epochs</td>
+                    <td>更充分的模型訓練</td>
+                </tr>
+                <tr>
+                    <td>正則化</td>
+                    <td>簡單Dropout</td>
+                    <td>BatchNorm + 多層Dropout</td>
+                    <td>更好的泛化能力</td>
+                </tr>
+            </table>
+        </div>
+
+        <div id="architecture" class="content">
+            <h2>模型架構對比</h2>
+            <div class="code-section">
+                <h3>原始版本</h3>
+                <div class="code-block">
+model = keras.Sequential([
+    layers.Dense(512, activation="relu"),
+    layers.Dropout(0.2),
+    layers.Dense(10, activation="softmax")
+])
+                </div>
+            </div>
+            <div class="code-section">
+                <h3>改進版本</h3>
+                <div class="code-block">
+model = keras.Sequential([
+    # First convolutional block
+    layers.Conv2D(32, (3, 3), activation='relu', input_shape=(28, 28, 1)),
+    layers.BatchNormalization(),
+    layers.MaxPooling2D((2, 2)),
+    layers.Dropout(0.25),
+    
+    # Second convolutional block
+    layers.Conv2D(64, (3, 3), activation='relu'),
+    layers.BatchNormalization(),
+    layers.MaxPooling2D((2, 2)),
+    layers.Dropout(0.25),
+    
+    # Third convolutional block
+    layers.Conv2D(128, (3, 3), activation='relu'),
+    layers.BatchNormalization(),
+    layers.Dropout(0.25),
+    
+    # Flatten and dense layers
+    layers.Flatten(),
+    layers.Dense(256, activation='relu'),
+    layers.BatchNormalization(),
+    layers.Dropout(0.5),
+    layers.Dense(10, activation='softmax')
+])
+                </div>
+            </div>
+        </div>
+
+        <div id="optimizer" class="content">
+            <h2>優化器對比</h2>
+            <div class="code-section">
+                <h3>原始版本</h3>
+                <div class="code-block">
+model.compile(optimizer=keras.optimizers.RMSprop(1e-2),
+              loss="sparse_categorical_crossentropy",
+              metrics=["accuracy"])
+                </div>
+            </div>
+            <div class="code-section">
+                <h3>改進版本</h3>
+                <div class="code-block">
+model.compile(optimizer=keras.optimizers.Adam(learning_rate=0.001),
+              loss="sparse_categorical_crossentropy",
+              metrics=["accuracy"])
+                </div>
+            </div>
+        </div>
+
+        <div id="training" class="content">
+            <h2>訓練參數對比</h2>
+            <div class="code-section">
+                <h3>原始版本</h3>
+                <div class="code-block">
+model.fit(train_images, train_labels,
+          epochs=5,
+          batch_size=128,
+          validation_split=0.2)
+                </div>
+            </div>
+            <div class="code-section">
+                <h3>改進版本</h3>
+                <div class="code-block">
+model.fit(train_images, train_labels,
+          epochs=20,
+          batch_size=64,
+          validation_split=0.2)
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        function showSection(sectionId) {
+            // Hide all sections
+            document.querySelectorAll('.content').forEach(section => {
+                section.classList.remove('active');
+            });
+            
+            // Deactivate all tabs
+            document.querySelectorAll('.tab').forEach(tab => {
+                tab.classList.remove('active');
+            });
+            
+            // Show selected section
+            document.getElementById(sectionId).classList.add('active');
+            
+            // Activate selected tab
+            event.target.classList.add('active');
+        }
+    </script>
+</body>
+</html> 
